@@ -1,0 +1,18 @@
+# Node modules
+node_modules/
+
+# Captured match data
+data/captured/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
