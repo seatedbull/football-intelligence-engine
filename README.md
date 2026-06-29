@@ -1,55 +1,68 @@
-# FIE - football-intelligence-engine
+# Football Intelligence Engine
 
-## Overview
-
-football-intelligence-engine is an AI-assisted football analysis project designed to build comprehensive betting dossiers for FIFA World Cup matches.
-
-The project uses Playwright to intercept SofaScore API requests directly from the browser instead of calling the API endpoints manually.
-
-This avoids the API 403 restrictions and captures the exact JSON data that the SofaScore website uses.
+AI-assisted football match analysis using SofaScore data, Playwright and Node.js.
 
 ---
 
-# Current Status
+# Purpose
 
-✅ Project created
+This project automates the collection of football match data from SofaScore and transforms it into a structured dataset that can be analysed to identify potential betting value.
 
-✅ Node.js configured
+The goal is **not** to predict winners.
 
-✅ Axios installed
+The goal is to make informed betting decisions using objective data.
 
-✅ Playwright installed
+---
 
-✅ Browser interception working
+# Current Workflow
 
-✅ Successfully capturing SofaScore API responses
-
-Current output:
-
-```
-data/
-    captured/
-        *.json
+```text
+Choose Match
+      │
+      ▼
+Paste SofaScore URL
+      │
+      ▼
+Collect APIs (Playwright)
+      │
+      ▼
+Generate Match Summary
+      │
+      ▼
+Analyse Match
+      │
+      ▼
+Manual Review
+      │
+      ▼
+Place Bet (if value exists)
 ```
 
 ---
 
 # Project Structure
 
-```
-ai-football-lab
+```text
+football-intelligence-engine/
 │
 ├── data/
-│   └── captured/
+│   ├── captured/
+│   ├── current-match.json
+│   └── match-summary.json
 │
 ├── src/
-│   ├── analyzers/
+│   ├── analyseMatch.js
+│   │
 │   ├── collectors/
-│   │      eventCollector.js
-│   │      playwrightEventCollector.js
-│   ├── models/
-│   ├── utils/
-│   └── index.js
+│   │   ├── playwrightEventCollector.js
+│   │   └── legacy/
+│   │       └── legacyAxiosEventCollector.js
+│   │
+│   ├── reports/
+│   │   └── generateSummary.js
+│   │
+│   └── utils/
+│       └── cleanCaptured.js
 │
 ├── package.json
 └── README.md
@@ -57,203 +70,272 @@ ai-football-lab
 
 ---
 
-# How to Run the Collector
+# Installation
 
-## Step 1
-
-Open
-
-```
-src/collectors/playwrightEventCollector.js
-```
-
----
-
-## Step 2
-
-Locate
-
-```javascript
-const pageUrl = "https://www.sofascore.com/football/match/...";
-```
-
-Replace the URL with the SofaScore match you want to analyse.
-
-Example:
-
-```javascript
-const pageUrl = "https://www.sofascore.com/football/match/team-a-team-b/XXXXXXXX";
-```
-
-Save the file.
-
----
-
-## Step 3
-
-Open the VS Code terminal.
-
-Run
+Clone the repository.
 
 ```bash
-node src/collectors/playwrightEventCollector.js
+git clone https://github.com/<your-username>/football-intelligence-engine.git
+```
+
+Install dependencies.
+
+```bash
+npm install
 ```
 
 ---
 
-## Step 4
+# Scripts
 
-A Chromium browser will open automatically.
-
-Allow the page to load completely.
-
-The collector automatically listens to every network request.
+| Command | Purpose |
+|----------|---------|
+| `npm run clean` | Deletes all previously captured API files |
+| `npm run collect` | Opens SofaScore and captures API responses |
+| `npm run summary` | Builds a simplified `match-summary.json` |
+| `npm run analyse` | Generates the betting analysis |
 
 ---
 
-## Step 5
+# Standard Workflow Before Every Bet
 
-When finished, check
+## 1. Select the match
 
-```
-data/captured
-```
-
-You should find multiple JSON files.
+Open SofaScore and copy the match URL.
 
 Example:
 
 ```
-event_12813000.json
-
-event_12813000_graph.json
-
-event_12813000_lineups.json
-
-event_12813000_votes.json
-
-event_12813000_odds_1_all.json
-
-event_12813000_highlights.json
-
-pregame_form.json
-
-...
+https://www.sofascore.com/football/match/paraguay-germany/...
 ```
 
 ---
 
-# Before Analysing Another Match
+## 2. Update
 
-Delete the contents of
+Edit:
 
 ```
-data/captured
+data/current-match.json
 ```
 
-Do NOT delete the folder itself.
+Example:
 
-This prevents JSON files from different matches being mixed together.
+```json
+{
+  "pageUrl": "https://www.sofascore.com/football/match/paraguay-germany/..."
+}
+```
 
 ---
 
-# Current Workflow
-
-1. Find the SofaScore match page.
-
-2. Paste the match URL into
-
-```
-playwrightEventCollector.js
-```
-
-3. Run
+## 3. Remove previous match data
 
 ```bash
-node src/collectors/playwrightEventCollector.js
+npm run clean
 ```
 
-4. Wait for the browser to finish loading.
-
-5. Verify JSON files exist inside
+Expected output:
 
 ```
-data/captured
-```
-
-6. Upload the captured JSON files to ChatGPT.
-
-7. Generate the complete betting dossier.
-
----
-
-# Project Goal
-
-The final system should work like this:
-
-```
-SofaScore Match URL
-        │
-        ▼
-Playwright Collector
-        │
-        ▼
-Capture every API response
-        │
-        ▼
-Save JSON files
-        │
-        ▼
-AI Football Engine
-        │
-        ├── Match Overview
-        ├── Team Analysis
-        ├── Player Analysis
-        ├── Tactical Analysis
-        ├── Statistical Comparison
-        ├── Momentum Analysis
-        ├── Courtside Model
-        ├── Betting Value
-        ├── Kelly Stake
-        ├── Multi Builder
-        └── Final Betting Recommendation
+Deleted XX files from data/captured
 ```
 
 ---
 
-# Future Improvements
+## 4. Collect SofaScore APIs
 
-- Automatically discover the correct SofaScore match URL.
-- Search matches by team names.
-- Automatically organise JSON by match.
-- Automatically extract player and team statistics.
-- Build a complete AI-generated betting dossier.
-- Export reports to Markdown and PDF.
-- Update Google Sheets automatically.
-- Add post-match review and model learning.
+```bash
+npm run collect
+```
+
+Playwright will automatically:
+
+- Open the match page
+- Capture all relevant API responses
+- Save them into
+
+```
+data/captured/
+```
 
 ---
 
-# Project Philosophy
+## 5. Build the match summary
 
-The objective is **not** to maximise the number of bets.
+```bash
+npm run summary
+```
 
-The objective is to maximise **long-term expected value (EV)**.
+This creates
 
-Every betting recommendation should combine:
+```
+data/match-summary.json
+```
 
-- SofaScore API data
-- Tournament statistics
-- Tactical analysis
-- Injuries and suspensions
-- Current news
-- Market odds
-- Courtside model
-- Expected value calculations
-- Risk assessment
+which contains:
 
-No single source should determine the final recommendation.
+- Match information
+- Team statistics
+- Lineups
+- Missing players
+- Fan votes
+- Odds
+- Source files
 
-If no betting edge exists, the correct recommendation is:
+---
 
-**NO BET**
+## 6. Analyse the match
+
+```bash
+npm run analyse
+```
+
+The analysis reviews:
+
+- Team attack
+- Team defence
+- Possession
+- Passing quality
+- Goal threat
+- Defensive stability
+- Injuries
+- Missing players
+- Fan sentiment
+- Betting observations
+
+---
+
+## Betting Checklist
+
+Before placing a bet:
+
+- Update the match URL
+- Run `npm run clean`
+- Run `npm run collect`
+- Run `npm run summary`
+- Run `npm run analyse`
+- Compare with bookmaker odds
+- Check injuries
+- Check confirmed lineups
+- Review Mundial Analytics
+- Only bet if genuine value exists
+
+---
+
+# Data Sources
+
+Automatically collected from SofaScore:
+
+- Match information
+- Team statistics
+- Lineups
+- Missing players
+- Fan votes
+- Featured odds
+- Pregame form
+- Player attributes
+- Featured players
+- Team achievements
+
+Manual sources:
+
+- Mundial Analytics
+- Official injury news
+- Bookmaker odds
+
+---
+
+# Future Roadmap
+
+## Phase 1 ✅
+
+- Playwright collector
+- Automatic API capture
+- Summary generator
+- Match analyser
+
+---
+
+## Phase 2
+
+Team Strength Model
+
+Generate scores for:
+
+- Attack
+- Defence
+- Midfield
+- Discipline
+- Form
+- Goalkeeper
+
+---
+
+## Phase 3
+
+Expected Value Engine
+
+Automatically compare:
+
+Model Probability
+
+vs
+
+Bookmaker Probability
+
+Then calculate:
+
+- Fair odds
+- Edge %
+- Expected Value (EV)
+
+---
+
+## Phase 4
+
+Full Tournament Intelligence
+
+Support:
+
+- FIFA World Cup
+- Champions League
+- Premier League
+- Copa Libertadores
+- International tournaments
+
+---
+
+# Technologies
+
+- Node.js
+- Playwright
+- Axios
+- SofaScore APIs
+
+---
+
+# Notes
+
+This project is designed as a football intelligence engine for research and data-driven betting analysis.
+
+No betting model guarantees profit.
+
+Always use disciplined bankroll management and avoid betting purely on model output.
+---
+
+# Example Session
+
+```bash
+# 1. Update current-match.json with today's match
+
+npm run clean
+
+npm run collect
+
+npm run summary
+
+npm run analyse
+```
+
+Review the generated analysis, compare it with bookmaker odds and external sources (such as Mundial Analytics), then decide whether a value bet exists.
