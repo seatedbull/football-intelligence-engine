@@ -1,8 +1,10 @@
-# Node modules
+# Dependencies
 node_modules/
 
-# Captured match data
+# Generated data
 data/captured/
+data/match-summary.json
+data/current-match.json
 
 # macOS
 .DS_Store

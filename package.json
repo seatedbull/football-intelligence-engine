@@ -1,12 +1,21 @@
 {
-  "name": "ai-football-lab",
+  "name": "football-intelligence-engine",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-assisted football analysis and SofaScore data collection engine.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
+  "clean": "node src/utils/cleanCaptured.js",
+  "collect": "node src/collectors/playwrightEventCollector.js",
+  "summary": "node src/reports/generateSummary.js",
+  "analyse": "node src/analyseMatch.js",
+  "test": "echo \"No tests configured yet\""
+},
+  "keywords": [
+    "football",
+    "playwright",
+    "data-analysis",
+    "world-cup"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
