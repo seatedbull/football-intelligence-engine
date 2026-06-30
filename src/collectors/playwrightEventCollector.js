@@ -6,6 +6,14 @@ const path = require("path");
 const configPath = path.join(__dirname, "../../data/current-match.json");
 const { pageUrl } = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
+const eventIdMatch = pageUrl.match(/#id:(\d+)/);
+const eventId = eventIdMatch?.[1];
+
+if (!eventId) {
+  console.error("❌ Could not extract event ID from SofaScore URL");
+  process.exit(1);
+}
+
 async function main() {
   const browser = await chromium.launch({
     headless: false,
@@ -53,6 +61,11 @@ async function main() {
     waitUntil: "networkidle",
     timeout: 60000,
   });
+  console.log("📊 Fetching event statistics manually...");
+
+await page.evaluate(async (eventId) => {
+  await fetch(`/api/v1/event/${eventId}/statistics`);
+}, eventId);
 
   console.log("⏳ Waiting for API responses...");
   await page.waitForTimeout(10000);

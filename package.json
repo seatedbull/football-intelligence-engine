@@ -8,7 +8,8 @@
   "collect": "node src/collectors/playwrightEventCollector.js",
   "summary": "node src/reports/generateSummary.js",
   "analyse": "node src/analyseMatch.js",
-  "test": "echo \"No tests configured yet\""
+  "test": "echo \"No tests configured yet\"",
+  "archive": "node src/utils/archiveMatch.js"
 },
   "keywords": [
     "football",

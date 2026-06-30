@@ -26,11 +26,29 @@ function findFile(includesText) {
 function findEventFile() {
   return fs
     .readdirSync(capturedDir)
-    .find(
-      (file) =>
-        /^event_\d+\.json$/.test(file) &&
-        file.endsWith(".json")
-    );
+    .find((file) => /^event_\d+\.json$/.test(file));
+}
+
+function extractMatchStat(statisticsData, key) {
+  const periods = statisticsData?.data?.statistics ?? [];
+
+  for (const period of periods) {
+    for (const group of period.groups ?? []) {
+      const item = group.statisticsItems?.find((stat) => stat.key === key);
+
+      if (item) {
+        return {
+          name: item.name,
+          home: item.homeValue,
+          away: item.awayValue,
+          homeDisplay: item.home,
+          awayDisplay: item.away,
+        };
+      }
+    }
+  }
+
+  return null;
 }
 
 const eventFile = findEventFile();
@@ -51,21 +69,28 @@ const lineupsFile = findFile(`event_${eventId}_lineups`);
 const graphFile = findFile(`event_${eventId}_graph`);
 const votesFile = findFile(`event_${eventId}_votes`);
 const oddsFile = findFile(`event_${eventId}_odds`);
+const statisticsFile = findFile(`event_${eventId}_statistics`);
 
-const homeStatsFile = findFile(
-  `team_${homeTeam.id}_unique-tournament`
-);
-
-const awayStatsFile = findFile(
-  `team_${awayTeam.id}_unique-tournament`
-);
+const homeStatsFile = findFile(`team_${homeTeam.id}_unique-tournament`);
+const awayStatsFile = findFile(`team_${awayTeam.id}_unique-tournament`);
 
 const lineupsData = readJson(lineupsFile);
 const graphData = readJson(graphFile);
 const votesData = readJson(votesFile);
 const oddsData = readJson(oddsFile);
+const statisticsData = readJson(statisticsFile);
 const homeStats = readJson(homeStatsFile);
 const awayStats = readJson(awayStatsFile);
+
+const matchStats = {
+  expectedGoals: extractMatchStat(statisticsData, "expectedGoals"),
+  bigChances: extractMatchStat(statisticsData, "bigChanceCreated"),
+  totalShots: extractMatchStat(statisticsData, "totalShotsOnGoal"),
+  shotsOnTarget: extractMatchStat(statisticsData, "shotsOnGoal"),
+  possession: extractMatchStat(statisticsData, "ballPossession"),
+  goalkeeperSaves: extractMatchStat(statisticsData, "goalkeeperSaves"),
+  corners: extractMatchStat(statisticsData, "cornerKicks"),
+};
 
 const summary = {
   match: {
@@ -94,6 +119,7 @@ const summary = {
     graph: Boolean(graphData),
     votes: Boolean(votesData),
     odds: Boolean(oddsData),
+    statistics: Boolean(statisticsData),
     homeStats: Boolean(homeStats),
     awayStats: Boolean(awayStats),
   },
@@ -104,9 +130,12 @@ const summary = {
     graph: graphFile,
     votes: votesFile,
     odds: oddsFile,
+    statistics: statisticsFile,
     homeStats: homeStatsFile,
     awayStats: awayStatsFile,
   },
+
+  matchStats,
 
   teamStats: {
     home: {
@@ -131,3 +160,4 @@ console.log(`✅ Summary created: ${outputFile}`);
 console.log(`Match: ${homeTeam.name} vs ${awayTeam.name}`);
 console.log(`Captured files: ${summary.filesCaptured}`);
 console.log(summary.availableData);
+console.log("Match stats:", summary.matchStats);
