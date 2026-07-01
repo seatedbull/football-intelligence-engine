@@ -1,42 +1,52 @@
 # Football Intelligence Engine
 
-AI-assisted football match analysis using SofaScore data, Playwright and Node.js.
+AI-assisted football intelligence engine built with Node.js, Playwright and SofaScore APIs.
+
+The project is designed to help make **consistent, data-driven betting decisions** rather than relying on intuition or public opinion.
 
 ---
 
-# Purpose
+# Philosophy
 
-This project automates the collection of football match data from SofaScore and transforms it into a structured dataset that can be analysed to identify potential betting value.
+The objective is **not** to predict football matches.
 
-The goal is **not** to predict winners.
+The objective is to identify **value bets**.
 
-The goal is to make informed betting decisions using objective data.
+A favourite can have an 80% chance of winning and still be a poor bet if the bookmaker has already priced that probability correctly.
+
+Likewise, an underdog may lose more often than it wins but still become profitable over time if the available odds underestimate its true chances.
+
+This engine exists to reduce emotional decision-making and replace it with a repeatable analysis process.
 
 ---
 
-# Current Workflow
+# Decision-Making Process
+
+Every betting day follows the same workflow.
 
 ```text
-Choose Match
-      │
-      ▼
-Paste SofaScore URL
-      │
-      ▼
-Collect APIs (Playwright)
-      │
-      ▼
-Generate Match Summary
-      │
-      ▼
-Analyse Match
-      │
-      ▼
-Manual Review
-      │
-      ▼
-Place Bet (if value exists)
+Analyse Match 1
+        │
+        ▼
+Analyse Match 2
+        │
+        ▼
+Analyse Match 3
+        │
+        ▼
+Compare Every Match
+        │
+        ▼
+Compare with Bookmaker Odds
+        │
+        ▼
+Allocate Bankroll
+        │
+        ▼
+Place Bets
 ```
+
+The bankroll is **never allocated until every match has been analysed.**
 
 ---
 
@@ -47,22 +57,25 @@ football-intelligence-engine/
 │
 ├── data/
 │   ├── captured/
+│   ├── history/
 │   ├── current-match.json
 │   └── match-summary.json
 │
 ├── src/
+│
 │   ├── analyseMatch.js
-│   │
+│
 │   ├── collectors/
 │   │   ├── playwrightEventCollector.js
 │   │   └── legacy/
 │   │       └── legacyAxiosEventCollector.js
-│   │
+│
 │   ├── reports/
 │   │   └── generateSummary.js
-│   │
+│
 │   └── utils/
-│       └── cleanCaptured.js
+│       ├── cleanCaptured.js
+│       └── archiveMatch.js
 │
 ├── package.json
 └── README.md
@@ -86,163 +99,263 @@ npm install
 
 ---
 
-# Scripts
+# Available Scripts
 
 | Command | Purpose |
 |----------|---------|
-| `npm run clean` | Deletes all previously captured API files |
+| `npm run clean` | Deletes previously captured APIs |
 | `npm run collect` | Opens SofaScore and captures API responses |
-| `npm run summary` | Builds a simplified `match-summary.json` |
-| `npm run analyse` | Generates the betting analysis |
+| `npm run summary` | Generates a simplified match summary |
+| `npm run analyse` | Complete workflow (URL → collect → summary) |
+| `npm run archive` | Saves completed match summaries into history |
 
 ---
 
 # Standard Workflow Before Every Bet
 
-## 1. Select the match
+## Step 1
 
-Open SofaScore and copy the match URL.
-
-Example:
-
-```
-https://www.sofascore.com/football/match/paraguay-germany/...
-```
-
----
-
-## 2. Update
-
-Edit:
-
-```
-data/current-match.json
-```
-
-Example:
-
-```json
-{
-  "pageUrl": "https://www.sofascore.com/football/match/paraguay-germany/..."
-}
-```
-
----
-
-## 3. Remove previous match data
-
-```bash
-npm run clean
-```
-
-Expected output:
-
-```
-Deleted XX files from data/captured
-```
-
----
-
-## 4. Collect SofaScore APIs
-
-```bash
-npm run collect
-```
-
-Playwright will automatically:
-
-- Open the match page
-- Capture all relevant API responses
-- Save them into
-
-```
-data/captured/
-```
-
----
-
-## 5. Build the match summary
-
-```bash
-npm run summary
-```
-
-This creates
-
-```
-data/match-summary.json
-```
-
-which contains:
-
-- Match information
-- Team statistics
-- Lineups
-- Missing players
-- Fan votes
-- Odds
-- Source files
-
----
-
-## 6. Analyse the match
+Run
 
 ```bash
 npm run analyse
 ```
 
-The analysis reviews:
+The script will ask for the SofaScore match URL.
 
-- Team attack
-- Team defence
-- Possession
-- Passing quality
-- Goal threat
-- Defensive stability
-- Injuries
+Example:
+
+```
+https://www.sofascore.com/football/match/france-sweden/...
+```
+
+The engine automatically:
+
+- saves the URL
+- cleans previous captures
+- collects APIs
+- generates the summary
+
+No manual editing of `current-match.json` is required.
+
+---
+
+## Step 2
+
+Review the generated summary.
+
+The engine produces:
+
+```
+data/match-summary.json
+```
+
+which includes:
+
+- Match information
+- Tournament
+- Team statistics
+- Lineups
+- Fan votes
+- Odds
+- Team tournament statistics
+- Match statistics (when available)
+- Expected Goals (xG)
+- Source files
+
+---
+
+## Step 3
+
+Repeat the workflow for every knockout match scheduled that day.
+
+Do **not** place bets after analysing only one match.
+
+Analyse every available match first.
+
+---
+
+## Step 4
+
+Collect bookmaker odds.
+
+Current workflow uses TAB NZ.
+
+Example:
+
+```
+France win
+
+Draw
+
+Sweden win
+
+France qualify
+
+Sweden qualify
+```
+
+---
+
+## Step 5
+
+Compare the market against the collected data.
+
+Every match is assessed using:
+
+### Attack
+
+- Goals scored
+- Shots
+- Shots on target
+- Big chances
+- Expected Goals (xG)
+
+### Defence
+
+- Goals conceded
+- Clean sheets
+- Defensive errors
+- Big chances allowed
+
+### Team Quality
+
+- Average player ratings
+- Lineups
 - Missing players
-- Fan sentiment
-- Betting observations
+- Suspensions
+- Injuries
+
+### Tactical Observations
+
+Statistics never tell the full story.
+
+Additional observations from watching matches are included when relevant.
+
+Examples:
+
+- Hit the woodwork several times
+- Dominated despite losing
+- Poor finishing
+- Goalkeeper outstanding
+- Tactical mismatch
+- Weather
+- Referee influence
 
 ---
 
-## Betting Checklist
+## Step 6
 
-Before placing a bet:
+Compare the bookmaker odds.
 
-- Update the match URL
-- Run `npm run clean`
-- Run `npm run collect`
-- Run `npm run summary`
-- Run `npm run analyse`
-- Compare with bookmaker odds
-- Check injuries
-- Check confirmed lineups
-- Review Mundial Analytics
-- Only bet if genuine value exists
+The objective is to answer:
+
+> Is the bookmaker underestimating or overestimating this team's chances?
+
+The engine seeks **value**, not simply favourites.
 
 ---
 
-# Data Sources
+## Step 7
 
-Automatically collected from SofaScore:
+Compare every analysed match.
+
+Typical discussion:
+
+- Which match offers the highest value?
+- Which favourite is overpriced?
+- Which underdog has value?
+- Which matches should be avoided?
+
+---
+
+## Step 8
+
+Allocate the bankroll.
+
+Example:
+
+```
+Bankroll
+
+$35
+
+France Win
+
+$20
+
+Ecuador Win
+
+$15
+```
+
+No stake allocation is made until every match has been compared.
+
+---
+
+# Data Collected
+
+Automatically captured from SofaScore:
 
 - Match information
 - Team statistics
+- Tournament statistics
 - Lineups
-- Missing players
-- Fan votes
-- Featured odds
-- Pregame form
-- Player attributes
-- Featured players
 - Team achievements
+- Featured players
+- Player attributes
+- Fan votes
+- Pregame form
+- Odds
+- Match statistics
+- Expected Goals (xG) when available
 
-Manual sources:
+External manual sources:
 
+- TAB NZ odds
 - Mundial Analytics
-- Official injury news
-- Bookmaker odds
+- Injury news
+- Team news
+
+---
+
+# Match Evaluation Framework
+
+Every analysed match receives a qualitative assessment based on:
+
+- Attack
+- Defence
+- Midfield control
+- Goal threat
+- Defensive stability
+- Team quality
+- Current tournament form
+- Market odds
+- Betting value
+- Confidence level
+
+The final recommendation can be:
+
+- Bet
+- Small Bet
+- No Bet
+
+"No Bet" is considered a successful outcome when value does not exist.
+
+---
+
+# Historical Match Archive
+
+Completed matches can be archived.
+
+Purpose:
+
+- Build historical xG database
+- Compare tournament trends
+- Improve future models
+- Learn from previous betting decisions
+
+This historical dataset will become more valuable as the tournament progresses.
 
 ---
 
@@ -251,9 +364,10 @@ Manual sources:
 ## Phase 1 ✅
 
 - Playwright collector
-- Automatic API capture
+- API capture
 - Summary generator
 - Match analyser
+- Historical archive
 
 ---
 
@@ -261,14 +375,14 @@ Manual sources:
 
 Team Strength Model
 
-Generate scores for:
+Automatically generate ratings for:
 
 - Attack
 - Defence
 - Midfield
-- Discipline
-- Form
 - Goalkeeper
+- Discipline
+- Current Form
 
 ---
 
@@ -276,33 +390,29 @@ Generate scores for:
 
 Expected Value Engine
 
-Automatically compare:
+Automatically calculate:
 
-Model Probability
-
-vs
-
-Bookmaker Probability
-
-Then calculate:
-
+- Model probability
+- Bookmaker probability
 - Fair odds
 - Edge %
 - Expected Value (EV)
+
+Highlight only positive EV opportunities.
 
 ---
 
 ## Phase 4
 
-Full Tournament Intelligence
+Football Intelligence Platform
 
-Support:
+Support additional competitions:
 
 - FIFA World Cup
 - Champions League
 - Premier League
 - Copa Libertadores
-- International tournaments
+- International competitions
 
 ---
 
@@ -315,27 +425,49 @@ Support:
 
 ---
 
-# Notes
-
-This project is designed as a football intelligence engine for research and data-driven betting analysis.
-
-No betting model guarantees profit.
-
-Always use disciplined bankroll management and avoid betting purely on model output.
----
-
-# Example Session
+# Example Betting Day
 
 ```bash
-# 1. Update current-match.json with today's match
+npm run analyse
 
-npm run clean
-
-npm run collect
-
-npm run summary
+# Paste Match 1 URL
 
 npm run analyse
+
+# Paste Match 2 URL
+
+npm run analyse
+
+# Paste Match 3 URL
+
+# Compare all matches
+
+# Collect bookmaker odds
+
+# Allocate bankroll
+
+# Place bets
+
+# Archive completed matches
+
+npm run archive
 ```
 
-Review the generated analysis, compare it with bookmaker odds and external sources (such as Mundial Analytics), then decide whether a value bet exists.
+---
+
+# Important Notes
+
+This project is intended as a football intelligence and research tool.
+
+It does **not** guarantee profitable betting.
+
+Long-term success depends on:
+
+- disciplined bankroll management
+- identifying value rather than winners
+- consistent analysis
+- continuous improvement of the underlying model
+
+The goal is not to be right every day.
+
+The goal is to make better decisions than the betting market over the long run.
